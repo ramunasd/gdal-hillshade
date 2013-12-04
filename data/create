@@ -1,0 +1,32 @@
+#!/bin/bash
+
+for x in {50..60}
+do
+	for y in {20..30}
+	do
+		tile="N"$x"E0"$y
+		source="$tile.hgt.zip"
+		dest="hillshade_$tile.tif"
+		if [ -f $dest ];
+		then
+			continue
+		fi
+		echo "Processing: "$source
+		wget -qN "http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/Eurasia/"$source
+		if [ ! -f $source ];
+		then
+			continue;
+		fi
+		unzip -nq $source
+		gdal_translate -q -of GTiff -a_srs "+proj=latlong" "$tile.hgt" tmp.tif
+		rm $tile.hgt
+		gdal_fillnodata.py -q tmp.tif filled.tif
+		gdalwarp -of GTiff -t_srs epsg:3785 -rc -order 3 -multi -overwrite filled.tif warped.tif
+		gdaldem hillshade -z 2 -compute_edges warped.tif shade.tif
+		../putalpha.py shade.tif shade.png
+		gdal_translate -q -of GTiff shade.png tmp.tif
+		../contrib/gdalcopyproj.py warped.tif tmp.tif
+		gdal_translate -q -of GTiff -co COMPRESS=DEFLATE -co PREDICTOR=2 -co ZLEVEL=3 tmp.tif $dest
+	done
+done
+gdalbuildvrt ../index.vrt `pwd`/hillshade_*.tif
