@@ -1,0 +1,21 @@
+<GDAL_WMS>
+    <Service name="TMS">
+        <ServerUrl>http://127.0.0.1:8888/${z}/${x}/${y}.png</ServerUrl>
+    </Service>
+    <DataWindow>
+        <UpperLeftX>-20037508.34</UpperLeftX>
+        <UpperLeftY>20037508.34</UpperLeftY>
+        <LowerRightX>20037508.34</LowerRightX>
+        <LowerRightY>-20037508.34</LowerRightY>
+        <SizeX>16777216</SizeX>
+        <SizeY>16777216</SizeY>
+        <TileLevel>16</TileLevel>
+        <YOrigin>top</YOrigin>
+    </DataWindow>
+    <Projection>EPSG:900913</Projection>
+    <BlockSizeX>1024</BlockSizeX>
+    <BlockSizeY>1024</BlockSizeY>
+    <OverviewCount>10</OverviewCount>
+    <BandsCount>4</BandsCount>
+    <ZeroBlockHttpCodes>204,404</ZeroBlockHttpCodes>
+</GDAL_WMS>

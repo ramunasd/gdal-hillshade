@@ -1,0 +1,31 @@
+#!/bin/bash
+
+TMP=${TMP:=/tmp}
+TILE=1024
+
+rm ./tiles/*
+
+size=`identify -format "%w %h" $1 2>/dev/null`
+width=(`echo "$size" | awk '{print $1}'`)
+height=(`echo "$size" | awk '{print $2}'`)
+
+for x in `seq 0 $TILE $width`; do
+	TILEX=$TILE
+	diff=$(($width - $x))
+	if [ $diff -lt $TILE ]; then
+		TILEX=$diff
+	fi
+	for y in `seq 0 $TILE $height`; do
+		TILEY=$TILE
+		diff=$(($height - $y))
+		if [ $diff -lt $TILE ]; then
+			TILEY=$diff
+		fi
+		f="./tiles/$x-$y.tif"
+		echo $f
+		gdal_translate -q -srcwin $x $y $TILEX $TILEY $1 tmp.tif
+		./putalpha.py tmp.tif $TMP/shade.png
+		gdal_translate -q -of GTiff $TMP/shade.png -co compress=packbits -co tiled=yes $f
+		./gdalcopyproj.py tmp.tif $f
+	done
+done

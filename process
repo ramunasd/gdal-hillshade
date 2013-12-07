@@ -1,0 +1,21 @@
+#!/bin/bash
+
+rm -rf ./dem/*
+
+for f in ./data/*.hgt.zip
+do
+	tile=${f##*/}
+	tile=${tile##*/}
+	tile=${tile%.*}
+	tile=${tile%.*}
+	if [ -f ./dem/$tile.tif ]; then
+		continue
+	fi
+	echo $tile
+	unzip -n -d ./dem/ $f
+	gdal_translate -q -of GTiff -a_srs "+proj=latlong" "./dem/$tile.hgt" ./dem/$tile.tif
+done
+
+gdalbuildvrt ./dem/index.vrt `pwd`/dem/*.tif
+gdalwarp -t_srs epsg:3857 -tr 76.4370282852 76.4370282852 -rc -order 3 -multi -co compress=packbits -co tiled=yes -overwrite dem/index.vrt -of vrt dem.vrt
+gdaldem hillshade -z 4 -co compress=packbits -co tiled=yes dem.vrt hillshade.tif
